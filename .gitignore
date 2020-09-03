@@ -1,0 +1,3 @@
+#exclude terraform.tfvars
+terraform.tfvars
+.terraform/
