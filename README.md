@@ -28,18 +28,15 @@ export AWS_SECRET_ACCESS_KEY='YOUR_AWS_API_SECRET_KEY'
 export ANSIBLE_HOSTS=./ec2.py 
 export EC2_INI_PATH=./ec2.ini
 ssh-agent bash
-ssh-add ~/.ssh/aditya.pem
+ssh-add ~/.ssh/<pem.key>
 
-ansible -i ./ec2.py -u ec2-user tag_Name_MediaWiki -m ping --working
-
-####### Default version deployment #############
-ansible-playbook -i ./ec2.py deployment_playbook.yml
 
 ####### Blue version deployment ################
-ansible-playbook -i ./ec2.py deployment_playbook.yml --extra-vars "mediawiki_url=https://releases.wikimedia.org/mediawiki/1.35/mediawiki-core-1.35.0-rc.2.tar.gz"
+ansible-playbook -i ./ec2.py Blue_deployment_playbook.yml --extra-vars "mediawiki_url=https://releases.wikimedia.org/mediawiki/1.35/mediawiki-core-1.35.0-rc.2.tar.gz"
+
+######## Green version deployment ###############
+ansible-playbook -i ./ec2.py Green_deployment_playbook.yml --extra-vars "mediawiki_url=https://releases.wikimedia.org/mediawiki/1.35/mediawiki-core-1.35.0-rc.2.tar.gz"
 
 
-
-########################################################
 
 
