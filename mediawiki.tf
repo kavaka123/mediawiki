@@ -8,12 +8,16 @@ variable "key_name" {}
 variable "region" {
     default = "ap-south-1"
 }
-variable rootpass {
+variable "rootpass" {
     default = "rootpass"
 }
 
-variable wikipass {
+variable "wikipass" {
     default = "wikipass"
+}
+
+variable "mediawiki_url" {
+    default = "https://releases.wikimedia.org/mediawiki/1.34/mediawiki-core-1.34.2.tar.gz"
 }
 
 ######################################################
@@ -141,7 +145,7 @@ resource "aws_instance" "mediawiki" {
     provisioner "remote-exec" {
         inline = [
             "sudo chmod a+x ./mediawiki_apache_config.sh",
-            "sudo ./mediawiki_apache_config.sh"
+            "sudo ./mediawiki_apache_config.sh ${var.mediawiki_url}"
         ]
         
     }
@@ -150,6 +154,6 @@ resource "aws_instance" "mediawiki" {
 #####################################################
 # Output
 #####################################################
-output "aws_instance_public_dns" {
-    value = aws_instance.mediawiki.public_dns
+output "mediawiki_url" {
+    value = "http://${aws_instance.mediawiki.public_dns}"
 }

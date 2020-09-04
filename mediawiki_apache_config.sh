@@ -2,18 +2,24 @@
 set -x
 # run as sudo
 
+if [ $# -ne 1 ];then
+    echo "Incorrect usage. Correct usage $0 <https://releases.wikimedia.org/mediawiki/1.34/mediawiki-core-1.34.2.tar.gz>"
+    exit 1
+fi
+
+media_wiki_url="$1"
 
 if ! command -v wget &> /dev/null;then
     dnf install -y wget
 fi
 
-rm mediawiki-1.34.2.tar.gz* || true  
-wget -q https://releases.wikimedia.org/mediawiki/1.34/mediawiki-1.34.2.tar.gz &&
-tar -zxf  mediawiki-1.34.2.tar.gz -C /var/www
+rm -r mediawiki-*.tar.gz* /var/www/mediawiki* || true  
+wget -q ${media_wiki_url} || exit 1
+tar -zxf  mediawiki-*.tar.gz -C /var/www 
 
-ln -s /var/www/mediawiki-1.34.2 /var/www/mediawiki
+ln -s /var/www/mediawiki-* /var/www/mediawiki
 chown -R apache:apache /var/www/mediawiki
-chown -R apache:apache /var/www/mediawiki-1.34.2
+chown -R apache:apache /var/www/mediawiki-*
 
 if [ ! -s ./httpd.conf ] || [ ! -s ./selinux_config ];then
     echo "httpd.conf or selinux_config files are missing or zero"
