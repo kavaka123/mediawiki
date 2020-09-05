@@ -3,19 +3,20 @@ set -x
 # run as sudo
 
 if [ $# -ne 1 ];then
-    echo "Incorrect usage. Correct usage $0 <https://releases.wikimedia.org/mediawiki/1.34/mediawiki-core-1.34.2.tar.gz>"
+    echo "Incorrect usage. Correct usage $0 <mediawiki-core-1.34.2.tar.gz>"
+# https://releases.wikimedia.org/mediawiki/1.34/mediawiki-core-1.34.2.tar.gz    
     exit 1
 fi
 
-media_wiki_url="$1"
+media_wiki_tar="$1"
 
 if ! command -v wget &> /dev/null;then
     dnf install -y wget
 fi
 
-rm -r mediawiki-*.tar.gz* /var/www/mediawiki* || true  
-wget -q ${media_wiki_url} || exit 1
-tar -zxf  mediawiki-*.tar.gz -C /var/www 
+old_files=$(ls mediawiki-*.tar.gz|grep -v "${media_wiki_tar}")
+rm -r $old_files /var/www/mediawiki* || true  
+tar -zxf ${media_wiki_tar} -C /var/www 
 
 ln -s /var/www/mediawiki-* /var/www/mediawiki
 chown -R apache:apache /var/www/mediawiki

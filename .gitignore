@@ -1,5 +1,6 @@
 #exclude terraform.tfvars
-terraform.tfvars
-.terraform/
-terraform.tfstate
-mediawiki.tfplan
+/terraform.tfvars
+/.terraform/
+/terraform.tfstate
+/mediawiki.tfplan
+/terraform.tfstate.backup

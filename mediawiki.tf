@@ -16,8 +16,8 @@ variable "wikipass" {
     default = "wikipass"
 }
 
-variable "mediawiki_url" {
-    default = "https://releases.wikimedia.org/mediawiki/1.34/mediawiki-core-1.34.2.tar.gz"
+variable "mediawiki_tar" {
+    default = "mediawiki-core-1.34.2.tar.gz"
 }
 
 variable "instance_count" {
@@ -104,6 +104,7 @@ resource "aws_route_table_association" "rta-subnet" {
     route_table_id = aws_route_table.rtb.id
 }
 
+# security group for ELB
 resource "aws_security_group" "elb-sg" {
     name = "elb_sg"
     vpc_id = aws_vpc.vpc.id
@@ -124,9 +125,10 @@ resource "aws_security_group" "elb-sg" {
     }
 }
 
+# security group for EC2 instances
 resource "aws_security_group" "allow-ssh-http" {
     name = "allow-ssh-http"
-    description = "Allow ssh and http from anywhere"
+    description = "Allow ssh from anywhere and http from VPC"
     vpc_id = aws_vpc.vpc.id
 
     ingress {
@@ -167,6 +169,15 @@ resource "aws_elb" "web" {
     }
 }
 
+# Enable stickiness to 5mins
+resource "aws_lb_cookie_stickiness_policy" "cookie" {
+    name = "cookie-policy"
+    load_balancer = aws_elb.web.id
+    lb_port = 80
+    cookie_expiration_period = 300
+}
+
+# Create EC2 instance and bootstrap it
 resource "aws_instance" "mediawiki" {
     count = var.instance_count
     ami = data.aws_ami.rhel-linux.id
@@ -174,6 +185,7 @@ resource "aws_instance" "mediawiki" {
     subnet_id = aws_subnet.subnet[count.index % var.subnet_count].id
     key_name = var.key_name
     vpc_security_group_ids = [aws_security_group.allow-ssh-http.id]
+    associate_public_ip_address = true
 
     tags = {
         Name = "${count.index}" % 2 == 0 ? "MediaWiki-Blue" : "MediaWiki-Green"
@@ -193,6 +205,11 @@ resource "aws_instance" "mediawiki" {
             "sudo systemctl enable httpd",
             "sudo systemctl start mariadb"
         ]
+    }
+
+    provisioner "file" {
+        source = "./mediawiki-core-1.34.2.tar.gz"
+        destination = "~/mediawiki-core-1.34.2.tar.gz"
     }
 
     provisioner "file" {
@@ -225,7 +242,7 @@ resource "aws_instance" "mediawiki" {
     provisioner "remote-exec" {
         inline = [
             "sudo chmod a+x ./mediawiki_apache_config.sh",
-            "sudo ./mediawiki_apache_config.sh ${var.mediawiki_url}"
+            "sudo ./mediawiki_apache_config.sh ${var.mediawiki_tar}"
         ]
         
     }
